@@ -789,40 +789,42 @@ if in knows the recipe.
       elseif code == keys.pageUp then
       elseif code == keys.pageDown then
       elseif code == keys.enter then
-        local rawName = status.inv[status.idSelected].rawName
-        local count = 64
-        if inv[rawName] == nil or inv[rawName].total == nil or inv[rawName].total <= 0 then
-          panelSearch:redirect()
-          term.clear()
-          write("How many? ")
-          count = tonumber(read())
-          count = count or 1
-          if count then
-            panelItems:redirect()
+        if status.inv ~= nil then
+          local rawName = status.inv[status.idSelected].rawName
+          local count = 64
+          if inv[rawName] == nil or inv[rawName].total == nil or inv[rawName].total <= 0 then
+            panelSearch:redirect()
             term.clear()
-            if not make(rawName, count) then
-              print("press [Enter] to continue...")
-              read()
+            write("How many? ")
+            count = tonumber(read())
+            count = count or 1
+            if count then
+              panelItems:redirect()
+              term.clear()
+              if not make(rawName, count) then
+                print("press [Enter] to continue...")
+                read()
+              end
+            end
+            panelSearch:redirect()
+            term.clear()
+            write(text)
+          end
+          if inv[rawName] ~= nil and inv[rawName].total > 0 then
+            local selfInv = self.getAllStacks()
+            local freeSlot = 0
+            for i = 1, 16 do
+              if selfInv[i] == nil then
+                freeSlot = i
+                break
+              end
+            end
+            if freeSlot > 0 then
+              request(rawName, math.min(count, inv[rawName].total), {freeSlot})
             end
           end
-          panelSearch:redirect()
-          term.clear()
-          write(text)
+          listItems(text)
         end
-        if inv[rawName] ~= nil and inv[rawName].total > 0 then
-          local selfInv = self.getAllStacks()
-          local freeSlot = 0
-          for i = 1, 16 do
-            if selfInv[i] == nil then
-              freeSlot = i
-              break
-            end
-          end
-          if freeSlot > 0 then
-            request(rawName, math.min(count, inv[rawName].total), {freeSlot})
-          end
-        end
-        listItems(text)
       end
     end
   end
