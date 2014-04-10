@@ -99,18 +99,29 @@ function findInventories()
   end
 end
 
-function getTurtleStacks()
+function getTurtleStacks(getSlot)
   if narcissistic then
-    return self.getAllStacks()
+    if getSlot == nil then
+      return self.getAllStacks()
+    else
+      return self.getStackInSlot(getSlot)
+    end
   else
-    for slot = 1, 16 do
-      self.pullItem(sideToDir["self"], slot, 64, slot)
+    if getSlot == nil then
+      for slot = 1, 16 do
+        self.pullItem(sideToDir["left"], slot, 64, slot)
+      end
+      local items = self.getAllStacks()
+      for slot = 1, 16 do
+        self.pushItem(sideToDir["left"], slot, 64, slot)
+      end
+      return items
+    else
+      self.pullItem(sideToDir["left"], getSlot, 64, getSlot)
+      local item = self.getStackInSlot(getSlot)
+      self.pushItem(sideToDir["left"], getSlot, 64, getSlot)
+      return item
     end
-    items = self.getAllStacks()
-    for slot = 1, 16 do
-      self.pushItem(sideToDir["self"], slot, 64, slot)
-    end
-    return items
   end  
 end
 
@@ -599,7 +610,7 @@ end
 function teachRecipe()
   panelItems:redirect()
   term.clear()
-  local items = self.getAllStacks()
+  local items = getTurtleStacks()
   local startRow = nil
   local endRow = nil
   local startCol = nil
@@ -652,7 +663,7 @@ function teachRecipe()
   end
   turtle.select(16)
   turtle.craft()
-  item = self.getStackInSlot(16)
+  local item = getTurtleStacks(16)
   if item then
     recipe.yield = item.qty
     recipe.size = {["rows"] = rows, ["cols"] = cols}
@@ -834,7 +845,7 @@ if in knows the recipe.
             write(text)
           end
           if inv[rawName] ~= nil and inv[rawName].total > 0 then
-            local selfInv = self.getAllStacks()
+            local selfInv = getTurtleStacks()
             local freeSlot = 0
             for i = 1, 16 do
               if selfInv[i] == nil then
