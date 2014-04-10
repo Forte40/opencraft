@@ -8,8 +8,9 @@ local version = {
 local sideToDir = {
   ["top"] = "down",
   ["bottom"] = "up",
-  ["front"] = "west",
-  ["back"] = "east"
+  ["front"] = "east",
+  ["back"] = "west",
+  ["left"] = "north"
 }
 
 -- utility functions
@@ -66,6 +67,7 @@ local inv = {}
 local invs = {}
 local stacks = {}
 local self
+local narcissistic = true
 
 --[[ example entry from getAllStacks
 id:17
@@ -84,15 +86,36 @@ function findInventories()
     if chest.getAllStacks ~= nil then
       if peripheral.getType(name) == "turtle" then
         self = chest
+      elseif name == "left" and peripheral.getType(name) == "container_chest" then
+        self = chest
+        narcissistic = false
       else
         invs[name] = chest
       end
     end
   end
+  if self == nil then
+    error("Need narcissistic turtle or wooden single chest on left")
+  end
+end
+
+function getTurtleStacks()
+  if narcissistic then
+    return self.getAllStacks()
+  else
+    for slot = 1, 16 do
+      self.pullItem(sideToDir["self"], slot, 64, slot)
+    end
+    items = self.getAllStacks()
+    for slot = 1, 16 do
+      self.pushItem(sideToDir["self"], slot, 64, slot)
+    end
+    return items
+  end  
 end
 
 function unloadTurtle()
-  local items = self.getAllStacks()
+  local items = getTurtleStacks()
   for slot, item in pairs(items) do
     local side = getHighSide(item.rawName)
     if side == nil then
