@@ -1,7 +1,7 @@
 -- opencraft
 local version = {
   ["major"] = 1,
-  ["minor"] = 0,
+  ["minor"] = 1,
   ["patch"] = 0
 }
 
@@ -823,7 +823,7 @@ if in knows the recipe.
       elseif code == keys.pageUp then
       elseif code == keys.pageDown then
       elseif code == keys.enter then
-        if status.inv ~= nil then
+        if status.inv ~= nil and status.idSelected ~= nil then
           local rawName = status.inv[status.idSelected].rawName
           local count = 64
           if inv[rawName] == nil or inv[rawName].total == nil or inv[rawName].total <= 0 then
