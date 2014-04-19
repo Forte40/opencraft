@@ -8,9 +8,9 @@ local version = {
 local sideToDir = {
   ["top"] = "down",
   ["bottom"] = "up",
-  ["front"] = "east",
-  ["back"] = "west",
-  ["left"] = "north"
+  ["front"] = "north",
+  ["back"] = "south",
+  ["self"] = "east"
 }
 
 -- utility functions
@@ -86,7 +86,7 @@ function findInventories()
     if chest.getAllStacks ~= nil then
       if peripheral.getType(name) == "turtle" then
         self = chest
-      elseif name == "left" and peripheral.getType(name) == "container_chest" then
+      elseif (name == "left" or name == "right") and peripheral.getType(name) == "container_chest" then
         self = chest
         narcissistic = false
       else
@@ -109,17 +109,17 @@ function getTurtleStacks(getSlot)
   else
     if getSlot == nil then
       for slot = 1, 16 do
-        self.pullItem(sideToDir["left"], slot, 64, slot)
+        self.pullItem(sideToDir["self"], slot, 64, slot)
       end
       local items = self.getAllStacks()
       for slot = 1, 16 do
-        self.pushItem(sideToDir["left"], slot, 64, slot)
+        self.pushItem(sideToDir["self"], slot, 64, slot)
       end
       return items
     else
-      self.pullItem(sideToDir["left"], getSlot, 64, getSlot)
+      self.pullItem(sideToDir["self"], getSlot, 64, getSlot)
       local item = self.getStackInSlot(getSlot)
-      self.pushItem(sideToDir["left"], getSlot, 64, getSlot)
+      self.pushItem(sideToDir["self"], getSlot, 64, getSlot)
       return item
     end
   end  
@@ -293,6 +293,9 @@ function filterBy(list, display)
 end
 
 function formatNumber(n)
+  if type(n) ~= "number" then
+    return "wat!"
+  end
   if n < 10 then
     return "   "..tostring(n)
   elseif n < 100 then
@@ -310,27 +313,7 @@ function formatNumber(n)
   end
 end
 
-os.loadAPI("apis/panel")
-
-local panelSearch = panel.new{y=-1, h=-1}
-panelSearch:redirect()
-term.setBackgroundColor(colors.white)
-term.setTextColor(colors.black)
-term.clear()
-
-local panelStatus = panel.new{y=1, h=2}
-panelStatus:redirect()
-term.setBackgroundColor(colors.white)
-term.setTextColor(colors.black)
-term.clear()
-
-local panelItems = panel.new{y=3, h=-4}
-panelItems:redirect()
-term.setBackgroundColor(colors.black)
-term.setTextColor(colors.white)
-term.clear()
 local width, height = term.getSize()
-
 local status = {
  display = 4,
  displayText = {" all  ", "stored", "craft ", " both "},
@@ -369,8 +352,10 @@ function getHighSide(rawName)
 end
 
 function changeId(up)
-  panelItems:redirect()
-  term.setCursorPos(5, status.idSelected - status.idViewed + 1)
+  local cols, rows = term.getSize()
+  term.setBackgroundColor(colors.black)
+  term.setTextColor(colors.white)
+  term.setCursorPos(5, status.idSelected - status.idViewed + 1 + 2)
   term.write(" ")
   if status.idSelected > 1 and up then
     status.idSelected = status.idSelected - 1
@@ -384,7 +369,7 @@ function changeId(up)
     status.idViewed = math.min(status.searchTotal - status.pageSize + 1, status.idSelected)
     listItems()
   end
-  term.setCursorPos(5, status.idSelected - status.idViewed + 1)
+  term.setCursorPos(5, status.idSelected - status.idViewed + 1 + 2)
   term.write(">")
   showStatus()
 end
@@ -414,13 +399,17 @@ function searchItems(text)
 end
 
 function listItems()
-  panelItems:redirect()
+  term.setBackgroundColor(colors.black)
+  term.setTextColor(colors.white)
   if status.inv then
     local width, height = term.getSize()
-    term.clear()
+    for row = 3, height -1 do
+      term.setCursorPos(1, row)
+      term.write(string.rep(" ", width))
+    end
     for i = status.idViewed, status.idViewed + math.min(#status.inv, status.pageSize) - 1 do
       local item = status.inv[i]
-      term.setCursorPos(1, i - status.idViewed + 1)
+      term.setCursorPos(1, i - status.idViewed + 1 + 2)
       write(formatNumber(item.total))
       if status.idSelected == i then
         write(">")
@@ -430,7 +419,11 @@ function listItems()
       write(item.name)
     end
   else
-    term.clear()
+    local width, height = term.getSize()
+    for row = 3, height -1 do
+      term.setCursorPos(1, row)
+      term.write(string.rep(" ", width))
+    end
     status.searchTotal = 0
     status.idSelected = 0
   end
@@ -464,7 +457,9 @@ function changeOption(up)
 end
 
 function showStatus()
-  panelStatus:redirect()
+  local cols, rows = term.getSize()
+  term.setBackgroundColor(colors.white)
+  term.setTextColor(colors.black)
   term.setCursorPos(1, 1)
   write("F1-Help F5-Refresh F6-Teach                ")
   local v = string.format("v%d.%d.%d", version.major, version.minor, version.patch)
@@ -608,8 +603,14 @@ function request(rawName, amount, slots)
 end
 
 function teachRecipe()
-  panelItems:redirect()
-  term.clear()
+  term.setBackgroundColor(colors.black)
+  term.setTextColor(colors.white)
+  local width, height = term.getSize()
+  for row = 3, height -1 do
+    term.setCursorPos(1, row)
+    term.write(string.rep(" ", width))
+  end
+  term.setCursorPos(1, 3)
   local items = getTurtleStacks()
   local startRow = nil
   local endRow = nil
@@ -684,13 +685,22 @@ end
 function main()
   showStatus()
   local text = ""
-  panelItems:redirect()
-  term.clear()
+  term.setBackgroundColor(colors.black)
+  term.setTextColor(colors.white)
+  local width, height = term.getSize()
+  for row = 3, height -1 do
+    term.setCursorPos(1, row)
+    term.write(string.rep(" ", width))
+  end
+  term.setCursorPos(1, 3)
   searchItems("")
   term.setCursorBlink(true)
   term.setCursorPos(1, 1)
   while true do
-    panelSearch:redirect()
+    local cols, rows = term.getSize()
+    term.setCursorPos(#text + 1, rows)
+    term.setBackgroundColor(colors.white)
+    term.setTextColor(colors.black)
     local width = term.getSize()
     local event, code = os.pullEvent()
     if event == "char" then
@@ -712,9 +722,14 @@ function main()
         text = ""
         searchItems(text)
       elseif code == keys.f1 then
-        panelItems:redirect()
-        term.clear()
-        term.setCursorPos(1, 1)
+        term.setBackgroundColor(colors.black)
+        term.setTextColor(colors.white)
+        local width, height = term.getSize()
+        for row = 3, height -1 do
+          term.setCursorPos(1, row)
+          term.write(string.rep(" ", width))
+        end
+        term.setCursorPos(1, 3)
 -------------------|-------------------
         write([[
                 Layout
@@ -781,8 +796,12 @@ if in knows the recipe.
       Press [ENTER] to continue.]])
         read()
 -------------------|-------------------
-        panelSearch:redirect()
-        term.clear()
+        local cols, rows = term.getSize()
+        term.setBackgroundColor(colors.white)
+        term.setTextColor(colors.black)
+        term.setCursorPos(1, rows)
+        term.write(string.rep(" ", cols))
+        term.setCursorPos(1, rows)
         write(text)
         searchItems(text)
       elseif code == keys.f5 then
@@ -827,21 +846,35 @@ if in knows the recipe.
           local rawName = status.inv[status.idSelected].rawName
           local count = 64
           if inv[rawName] == nil or inv[rawName].total == nil or inv[rawName].total <= 0 then
-            panelSearch:redirect()
-            term.clear()
+            local cols, rows = term.getSize()
+            term.setBackgroundColor(colors.white)
+            term.setTextColor(colors.black)
+            term.setCursorPos(1, rows)
+            term.write(string.rep(" ", cols))
+            term.setCursorPos(1, rows)
             write("How many? ")
             count = tonumber(read())
             count = count or 1
             if count then
-              panelItems:redirect()
-              term.clear()
+              term.setBackgroundColor(colors.black)
+              term.setTextColor(colors.white)
+              local width, height = term.getSize()
+              for row = 3, height -1 do
+                term.setCursorPos(1, row)
+                term.write(string.rep(" ", width))
+              end
+              term.setCursorPos(1, 3)
               if not make(rawName, count) then
                 print("press [Enter] to continue...")
                 read()
               end
             end
-            panelSearch:redirect()
-            term.clear()
+            local cols, rows = term.getSize()
+            term.setBackgroundColor(colors.white)
+            term.setTextColor(colors.black)
+            term.setCursorPos(1, rows)
+            term.write(string.rep(" ", cols))
+            term.setCursorPos(1, rows)
             write(text)
           end
           if inv[rawName] ~= nil and inv[rawName].total > 0 then
