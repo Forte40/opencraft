@@ -312,9 +312,16 @@ end
 
 os.loadAPI("apis/panel")
 
-local panelSearch = panel.new{y=-1, h=-1, textColor=colors.black, backgroundColor=colors.white}
-local panelStatus = panel.new{y=1, h=2, textColor=colors.black, backgroundColor=colors.white}
-local panelItems = panel.new{y=3, h=-4, textColor=colors.white, backgroundColor=colors.black}
+local panelSearch = panel.new{y=-1, h=-1,
+                              textColor=colors.black,
+                              backgroundColor=colors.white,
+                              blink=true}
+local panelStatus = panel.new{y=1, h=2,
+                              textColor=colors.black,
+                              backgroundColor=colors.white}
+local panelItems = panel.new{y=3, h=-4,
+                             textColor=colors.white,
+                             backgroundColor=colors.black}
 
 local width, height = term.getSize()
 local status = {
