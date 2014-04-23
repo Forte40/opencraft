@@ -322,7 +322,7 @@ local panelStatus = panel.new{y=1, h=2,
 local panelItems = panel.new{y=3, h=-4,
                              textColor=colors.white,
                              backgroundColor=colors.black}
-
+panelItems.redirect()
 local width, height = term.getSize()
 local status = {
  display = 4,
@@ -490,6 +490,7 @@ function showStatus()
   write(formatNumber(status.idSelected))
   write(" of ")
   write(formatNumber(status.searchTotal))
+  panelSearch.redirect()
 end
 
 function make(rawName, amount, makeStack)
