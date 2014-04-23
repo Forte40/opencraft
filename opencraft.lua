@@ -293,9 +293,6 @@ function filterBy(list, display)
 end
 
 function formatNumber(n)
-  if type(n) ~= "number" then
-    return "wat!"
-  end
   if n < 10 then
     return "   "..tostring(n)
   elseif n < 100 then
@@ -312,6 +309,12 @@ function formatNumber(n)
     return tostring(math.floor(n / 100000) / 10).."M"
   end
 end
+
+os.loadAPI("apis/panel")
+
+local panelSearch = panel.new{y=-1, h=-1, textColor=colors.black, backgroundColor=colors.white}
+local panelStatus = panel.new{y=1, h=2, textColor=colors.black, backgroundColor=colors.white}
+local panelItems = panel.new{y=3, h=-4, textColor=colors.white, backgroundColor=colors.black}
 
 local width, height = term.getSize()
 local status = {
@@ -352,10 +355,8 @@ function getHighSide(rawName)
 end
 
 function changeId(up)
-  local cols, rows = term.getSize()
-  term.setBackgroundColor(colors.black)
-  term.setTextColor(colors.white)
-  term.setCursorPos(5, status.idSelected - status.idViewed + 1 + 2)
+  panelItems.redirect()
+  term.setCursorPos(5, status.idSelected - status.idViewed + 1)
   term.write(" ")
   if status.idSelected > 1 and up then
     status.idSelected = status.idSelected - 1
@@ -369,7 +370,7 @@ function changeId(up)
     status.idViewed = math.min(status.searchTotal - status.pageSize + 1, status.idSelected)
     listItems()
   end
-  term.setCursorPos(5, status.idSelected - status.idViewed + 1 + 2)
+  term.setCursorPos(5, status.idSelected - status.idViewed + 1)
   term.write(">")
   showStatus()
 end
@@ -399,17 +400,13 @@ function searchItems(text)
 end
 
 function listItems()
-  term.setBackgroundColor(colors.black)
-  term.setTextColor(colors.white)
+  panelItems.redirect()
   if status.inv then
     local width, height = term.getSize()
-    for row = 3, height -1 do
-      term.setCursorPos(1, row)
-      term.write(string.rep(" ", width))
-    end
+    term.clear()
     for i = status.idViewed, status.idViewed + math.min(#status.inv, status.pageSize) - 1 do
       local item = status.inv[i]
-      term.setCursorPos(1, i - status.idViewed + 1 + 2)
+      term.setCursorPos(1, i - status.idViewed + 1)
       write(formatNumber(item.total))
       if status.idSelected == i then
         write(">")
@@ -419,11 +416,7 @@ function listItems()
       write(item.name)
     end
   else
-    local width, height = term.getSize()
-    for row = 3, height -1 do
-      term.setCursorPos(1, row)
-      term.write(string.rep(" ", width))
-    end
+    term.clear()
     status.searchTotal = 0
     status.idSelected = 0
   end
@@ -457,9 +450,7 @@ function changeOption(up)
 end
 
 function showStatus()
-  local cols, rows = term.getSize()
-  term.setBackgroundColor(colors.white)
-  term.setTextColor(colors.black)
+  panelStatus:redirect()
   term.setCursorPos(1, 1)
   write("F1-Help F5-Refresh F6-Teach                ")
   local v = string.format("v%d.%d.%d", version.major, version.minor, version.patch)
@@ -566,7 +557,6 @@ function verify(rawName, amount)
       needed = needed - inv[verifyRawName].total
     end
   end
-  --print("verify ", rawName, " ", math.max(0, needed), " needed")
   return math.max(0, needed)
 end
 
@@ -588,7 +578,6 @@ function request(rawName, amount, slots)
       for i, item in ipairs(inv[rawName]) do
         if item.qty > 0 then
           local moved = invs[item.side].pushItem(sideToDir[item.side], item.slot, math.min(pushed, item.qty), slot)
-          --print("moved ", moved, " of ", pushed, " from ", item.slot)
           item.qty = item.qty - moved
           inv[rawName].total = inv[rawName].total - moved
           pushed = pushed - moved
@@ -603,14 +592,8 @@ function request(rawName, amount, slots)
 end
 
 function teachRecipe()
-  term.setBackgroundColor(colors.black)
-  term.setTextColor(colors.white)
-  local width, height = term.getSize()
-  for row = 3, height -1 do
-    term.setCursorPos(1, row)
-    term.write(string.rep(" ", width))
-  end
-  term.setCursorPos(1, 3)
+  panelItems.redirect()
+  term.clear()
   local items = getTurtleStacks()
   local startRow = nil
   local endRow = nil
@@ -685,22 +668,13 @@ end
 function main()
   showStatus()
   local text = ""
-  term.setBackgroundColor(colors.black)
-  term.setTextColor(colors.white)
-  local width, height = term.getSize()
-  for row = 3, height -1 do
-    term.setCursorPos(1, row)
-    term.write(string.rep(" ", width))
-  end
-  term.setCursorPos(1, 3)
+  panelItems.redirect()
+  term.clear()
   searchItems("")
   term.setCursorBlink(true)
   term.setCursorPos(1, 1)
   while true do
-    local cols, rows = term.getSize()
-    term.setCursorPos(#text + 1, rows)
-    term.setBackgroundColor(colors.white)
-    term.setTextColor(colors.black)
+    panelSearch.redirect()
     local width = term.getSize()
     local event, code = os.pullEvent()
     if event == "char" then
@@ -722,14 +696,9 @@ function main()
         text = ""
         searchItems(text)
       elseif code == keys.f1 then
-        term.setBackgroundColor(colors.black)
-        term.setTextColor(colors.white)
-        local width, height = term.getSize()
-        for row = 3, height -1 do
-          term.setCursorPos(1, row)
-          term.write(string.rep(" ", width))
-        end
-        term.setCursorPos(1, 3)
+        panelItems.redirect()
+        term.clear()
+        term.setCursorPos(1, 1)
 -------------------|-------------------
         write([[
                 Layout
@@ -796,12 +765,8 @@ if in knows the recipe.
       Press [ENTER] to continue.]])
         read()
 -------------------|-------------------
-        local cols, rows = term.getSize()
-        term.setBackgroundColor(colors.white)
-        term.setTextColor(colors.black)
-        term.setCursorPos(1, rows)
-        term.write(string.rep(" ", cols))
-        term.setCursorPos(1, rows)
+        panelSearch.redirect()
+        term.clear()
         write(text)
         searchItems(text)
       elseif code == keys.f5 then
@@ -811,7 +776,7 @@ if in knows the recipe.
         searchItems(text)
       elseif code == keys.f6 then
         teachRecipe()
-        unloadTurtle()
+        --unloadTurtle()
         takeInventory()
         searchItems(text)
       elseif code == keys.left then
@@ -846,35 +811,22 @@ if in knows the recipe.
           local rawName = status.inv[status.idSelected].rawName
           local count = 64
           if inv[rawName] == nil or inv[rawName].total == nil or inv[rawName].total <= 0 then
-            local cols, rows = term.getSize()
-            term.setBackgroundColor(colors.white)
-            term.setTextColor(colors.black)
-            term.setCursorPos(1, rows)
-            term.write(string.rep(" ", cols))
-            term.setCursorPos(1, rows)
+            panelSearch.redirect()
+            term.clear()
             write("How many? ")
             count = tonumber(read())
             count = count or 1
             if count then
-              term.setBackgroundColor(colors.black)
-              term.setTextColor(colors.white)
-              local width, height = term.getSize()
-              for row = 3, height -1 do
-                term.setCursorPos(1, row)
-                term.write(string.rep(" ", width))
-              end
-              term.setCursorPos(1, 3)
+              takeInventory()
+              panelItems.redirect()
+              term.clear()
               if not make(rawName, count) then
                 print("press [Enter] to continue...")
                 read()
               end
             end
-            local cols, rows = term.getSize()
-            term.setBackgroundColor(colors.white)
-            term.setTextColor(colors.black)
-            term.setCursorPos(1, rows)
-            term.write(string.rep(" ", cols))
-            term.setCursorPos(1, rows)
+            panelSearch.redirect()
+            term.clear()
             write(text)
           end
           if inv[rawName] ~= nil and inv[rawName].total > 0 then
