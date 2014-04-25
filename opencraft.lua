@@ -2,7 +2,7 @@
 local version = {
   ["major"] = 1,
   ["minor"] = 2,
-  ["patch"] = 0
+  ["patch"] = 1
 }
 
 -- utility functions
@@ -221,7 +221,7 @@ function takeInventory()
   for rawName, recipe in pairs(recipes) do
     local item = {
       ["rawName"] = recipe.rawName,
-      ["name"] = recipe.name,
+      ["name"] = fixName(recipe.name),
       ["id"] = recipe.id,
       ["maxSize"] = recipe.maxSize,
       ["total"] = 0,
