@@ -62,6 +62,21 @@ end
 -- setup
 
 local recipes = loadFile("recipes.dat") or {}
+local nameFix = loadFile("namefix.dat") or {
+  ["sub"] = {}
+  ["replace"] = {}
+}
+
+function fixName(name)
+  if nameFix.sub[name] then
+    return nameFix.sub[name]
+  else
+    for find, replace in pairs(nameFix.replace) do
+      name = name:gsub(find, replace)
+    end
+    return name
+  end
+end
 
 local inv = {}
 local invs = {}
@@ -163,7 +178,7 @@ function unloadTurtle()
           if invItem == nil then
             invItem = {
               ["total"] = item.qty,
-              ["name"] = item.name,
+              ["name"] = fixName(item.name),
               ["rawName"] = item.rawName,
               ["id"] = item.id,
               ["maxSize"] = item.maxSize,
@@ -173,7 +188,7 @@ function unloadTurtle()
           invItem.total = invItem.total + item.qty
           table.insert(invItem, {
             ["qty"] = item.qty,
-            ["name"] = item.name,
+            ["name"] = fixName(item.name),
             ["rawName"] = item.rawName,
             ["id"] = item.id,
             ["maxSize"] = item.maxSize,
@@ -183,7 +198,7 @@ function unloadTurtle()
           })
           chestItems[freeSlot] = {
             ["qty"] = item.qty,
-            ["name"] = item.name,
+            ["name"] = fixName(item.name),
             ["rawName"] = item.rawName,
             ["id"] = item.id,
             ["maxSize"] = item.maxSize,
@@ -219,7 +234,7 @@ function takeInventory()
         invItem.total = invItem.total + item.qty
         table.insert(invItem, {
           ["qty"] = item.qty,
-          ["name"] = item.name,
+          ["name"] = fixName(item.name),
           ["rawName"] = item.rawName,
           ["id"] = item.id,
           ["maxSize"] = item.maxSize,
@@ -230,13 +245,13 @@ function takeInventory()
       else
         inv[item.rawName] = {
           ["total"] = item.qty,
-          ["name"] = item.name,
+          ["name"] = fixName(item.name),
           ["rawName"] = item.rawName,
           ["id"] = item.id,
           ["maxSize"] = item.maxSize,
           [1] = {
             ["qty"] = item.qty,
-            ["name"] = item.name,
+            ["name"] = fixName(item.name),
             ["rawName"] = item.rawName,
             ["id"] = item.id,
             ["maxSize"] = item.maxSize,
@@ -248,7 +263,7 @@ function takeInventory()
       end
     end
   end
-  saveFile("inventory.dat", inv)
+  --saveFile("inventory.dat", inv)
 end
 
 function search(name)
@@ -420,7 +435,7 @@ function listItems()
       else
         write(" ")
       end
-      write(item.name)
+      write(item.name:sub(1, 33))
     end
   else
     term.clear()
@@ -775,6 +790,7 @@ if in knows the recipe.
 -------------------|-------------------
         panelSearch.redirect()
         term.clear()
+        term.setCursorPos(1, 1)        
         write(text)
         searchItems(text)
       elseif code == keys.f5 then
@@ -814,6 +830,17 @@ if in knows the recipe.
         showStatus()
       elseif code == keys.pageUp then
       elseif code == keys.pageDown then
+      elseif code == keys.F4 then
+        if status.inv ~= nil and status.idSelected ~= nil and status.inv[status.idSelected] ~= nil then
+          panelSearch.redirect()
+          term.clear()
+          term.setCursorPos(1, 1)
+          write("New Name: ")
+          newName = read()
+          if newName ~= "" then
+            nameFix.sub[status.inv[status.idSelected].name] = newName
+            saveFile("namefix.dat", nameFix)
+          end
       elseif code == keys.enter then
         if status.inv ~= nil and status.idSelected ~= nil and status.inv[status.idSelected] ~= nil then
           local rawName = status.inv[status.idSelected].rawName
@@ -821,6 +848,7 @@ if in knows the recipe.
           if inv[rawName] == nil or inv[rawName].total == nil or inv[rawName].total <= 0 then
             panelSearch.redirect()
             term.clear()
+            term.setCursorPos(1, 1)
             write("How many? ")
             count = tonumber(read())
             count = count or 1
@@ -831,10 +859,13 @@ if in knows the recipe.
               if not make(rawName, count) then
                 print("press [Enter] to continue...")
                 read()
+              else
+                takeInventory()
               end
             end
             panelSearch.redirect()
             term.clear()
+            term.setCursorPos(1, 1)
             write(text)
           end
           if inv[rawName] ~= nil and inv[rawName].total > 0 then
