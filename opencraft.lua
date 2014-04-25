@@ -226,6 +226,9 @@ function takeInventory()
       ["maxSize"] = recipe.maxSize,
       ["total"] = 0,
     }
+    if item.name ~= recipe.name then
+      item.origName = recipe.name
+    end
     inv[rawName] = item
   end
   -- load items from chests
@@ -246,7 +249,7 @@ function takeInventory()
           ["slot"] = slot
         })
       else
-        inv[item.rawName] = {
+        invItem = {
           ["total"] = item.qty,
           ["name"] = fixName(item.name),
           ["rawName"] = item.rawName,
@@ -263,6 +266,10 @@ function takeInventory()
             ["slot"] = slot
           }
         }
+        if invItem.name ~= item.name then
+          invItem.origName = item.name
+        end
+        inv[item.rawName] = invItem
       end
     end
   end
@@ -701,6 +708,9 @@ function main()
   term.setCursorPos(1, 1)
   while true do
     panelSearch.redirect()
+    term.clear()
+    term.setCursorPos(1, 1)
+    term.write(text)
     local width = term.getSize()
     local event, code = os.pullEvent()
     if event == "char" then
@@ -791,10 +801,6 @@ if in knows the recipe.
       Press [ENTER] to continue.]])
         read()
 -------------------|-------------------
-        panelSearch.redirect()
-        term.clear()
-        term.setCursorPos(1, 1)        
-        write(text)
         searchItems(text)
       elseif code == keys.f5 then
         unloadTurtle()
@@ -841,14 +847,13 @@ if in knows the recipe.
           write("New Name: ")
           newName = read()
           if newName ~= "" then
-            nameFix.sub[status.inv[status.idSelected].name] = newName
+            local item = status.inv[status.idSelected]
+            local oldName = item.origName or item.name
+            nameFix.sub[oldName] = newName
             saveFile("namefix.dat", nameFix)
             takeInventory()
           end
-          panelSearch.redirect()
-          term.clear()
-          term.setCursorPos(1, 1)
-          write(text)
+          searchItems(text)
         end
       elseif code == keys.enter then
         if status.inv ~= nil and status.idSelected ~= nil and status.inv[status.idSelected] ~= nil then
@@ -872,10 +877,6 @@ if in knows the recipe.
                 takeInventory()
               end
             end
-            panelSearch.redirect()
-            term.clear()
-            term.setCursorPos(1, 1)
-            write(text)
           end
           if inv[rawName] ~= nil and inv[rawName].total > 0 then
             local selfInv = getTurtleStacks()
