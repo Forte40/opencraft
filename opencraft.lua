@@ -844,6 +844,7 @@ if in knows the recipe.
             nameFix.sub[status.inv[status.idSelected].name] = newName
             saveFile("namefix.dat", nameFix)
           end
+        end
       elseif code == keys.enter then
         if status.inv ~= nil and status.idSelected ~= nil and status.inv[status.idSelected] ~= nil then
           local rawName = status.inv[status.idSelected].rawName
