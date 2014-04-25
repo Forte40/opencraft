@@ -1,16 +1,8 @@
 -- opencraft
 local version = {
   ["major"] = 1,
-  ["minor"] = 1,
+  ["minor"] = 2,
   ["patch"] = 0
-}
-
-local sideToDir = {
-  ["top"] = "down",
-  ["bottom"] = "up",
-  ["front"] = "north",
-  ["back"] = "south",
-  ["self"] = "east"
 }
 
 -- utility functions
@@ -63,9 +55,20 @@ end
 
 local recipes = loadFile("recipes.dat") or {}
 local nameFix = loadFile("namefix.dat") or {
-  ["sub"] = {}
+  ["sub"] = {},
   ["replace"] = {}
 }
+local sideToDir = loadFile("directions.dat")
+if sideToDir == nil then
+  sideToDir = {
+    ["top"] = "down",
+    ["bottom"] = "up",
+    ["front"] = "north",
+    ["back"] = "south",
+    ["self"] = "east"
+  }
+  saveFile("directions.dat", sideToDir)
+end
 
 function fixName(name)
   if nameFix.sub[name] then
