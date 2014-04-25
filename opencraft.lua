@@ -833,7 +833,7 @@ if in knows the recipe.
         showStatus()
       elseif code == keys.pageUp then
       elseif code == keys.pageDown then
-      elseif code == keys.F4 then
+      elseif code == keys.f4 then
         if status.inv ~= nil and status.idSelected ~= nil and status.inv[status.idSelected] ~= nil then
           panelSearch.redirect()
           term.clear()
@@ -843,7 +843,12 @@ if in knows the recipe.
           if newName ~= "" then
             nameFix.sub[status.inv[status.idSelected].name] = newName
             saveFile("namefix.dat", nameFix)
+            takeInventory()
           end
+          panelSearch.redirect()
+          term.clear()
+          term.setCursorPos(1, 1)
+          write(text)
         end
       elseif code == keys.enter then
         if status.inv ~= nil and status.idSelected ~= nil and status.inv[status.idSelected] ~= nil then
