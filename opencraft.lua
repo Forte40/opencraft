@@ -642,8 +642,14 @@ function request(rawName, amount, slots)
           if invs[item.side].pushItem then
             moved = invs[item.side].pushItem(sideToDir[item.side], item.slot, math.min(pushed, item.qty), slot)
           elseif invs[item.side].extractItem then
-            turtle.select(slot)
+            for j = 1, 16 do
+              if turtle.getItemCount(j) == 0 then
+                turtle.select(j)
+                break
+              end
+            end
             moved = invs[item.side].extractItem({id=item.id, dmg=item.dmg, qty=math.min(pushed, item.qty)}, sideToDir[item.side])
+            turtle.transferTo(slot, moved)
           end
           item.qty = item.qty - moved
           inv[rawName].total = inv[rawName].total - moved
