@@ -523,9 +523,10 @@ function showStatus()
   panelSearch.redirect()
 end
 
-function make(rawName, amount, makeStack)
+function make(rawName, amount, makeStack, used)
   local invItem = inv[rawName]
   makeStack = makeStack or {}
+  used = used or {}
   makeStack[rawName] = true
   amount = amount or 1
   if not invItem then
@@ -554,8 +555,13 @@ function make(rawName, amount, makeStack)
   local maxStack = invItem.maxSize
   for makeRawName, slots in pairs(mat) do
     local needed = verify(makeRawName, amount * #slots)
+    if used[makeRawName] then
+      used[makeRawName] = used[makeRawName] + (amount * #slots - needed)
+    else
+      used[makeRawName] = amount * #slots - needed
+    end
     if needed > 0 then
-      if makeStack[makeRawName] or not make(makeRawName, needed, makeStack) then
+      if makeStack[makeRawName] or not make(makeRawName, needed, makeStack, used) then
         if inv[makeRawName] then
           print("can't make "..invItem.name..", need "..needed.." "..inv[makeRawName].name)
         else
@@ -586,13 +592,17 @@ function make(rawName, amount, makeStack)
   return true
 end
 
-function verify(rawName, amount)
+function verify(rawName, amount, used)
   local needed = amount
   local verifyRawNames
   verifyRawNames = {rawName}
   for _, verifyRawName in ipairs(verifyRawNames) do
     if inv[verifyRawName] then
-      needed = needed - inv[verifyRawName].total
+      local total = inv[verifyRawName].total
+      if used[verifyRawName] then
+        total = total - used[verifyRawName]
+      end
+      needed = needed - total
     end
   end
   return math.max(0, needed)
