@@ -554,7 +554,7 @@ function make(rawName, amount, makeStack, used)
   end
   local maxStack = invItem.maxSize
   for makeRawName, slots in pairs(mat) do
-    local needed = verify(makeRawName, amount * #slots)
+    local needed = verify(makeRawName, amount * #slots, used)
     if used[makeRawName] then
       used[makeRawName] = used[makeRawName] + (amount * #slots - needed)
     else
@@ -593,6 +593,7 @@ function make(rawName, amount, makeStack, used)
 end
 
 function verify(rawName, amount, used)
+  used = used or {}
   local needed = amount
   local verifyRawNames
   verifyRawNames = {rawName}
