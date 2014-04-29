@@ -110,6 +110,12 @@ function findInventories()
       else
         invs[name] = chest
       end
+    elseif chest.getAvailableItems ~= nil then
+      invs[name] = chest
+      -- wrap AE functions
+      chest.pullItem = function (direction, from_turtle_slot, count, to_chest_slot)
+        chest.insertItem(from_turtle_slot, count, direction)
+      end
     end
   end
   if self == nil then
@@ -626,7 +632,13 @@ function request(rawName, amount, slots)
       local pushed = amount
       for i, item in ipairs(inv[rawName]) do
         if item.qty > 0 then
-          local moved = invs[item.side].pushItem(sideToDir[item.side], item.slot, math.min(pushed, item.qty), slot)
+          local moved
+          if invs[item.side].pushItem then
+            moved = invs[item.side].pushItem(sideToDir[item.side], item.slot, math.min(pushed, item.qty), slot)
+          elseif invs[item.side].extractItem then
+            turtle.select(slot)
+            moved = invs[item.side].extractItem({id=item.id, qty=math.min(pushed, item.qty)}, sideToDir[item.side])
+          end
           item.qty = item.qty - moved
           inv[rawName].total = inv[rawName].total - moved
           pushed = pushed - moved
