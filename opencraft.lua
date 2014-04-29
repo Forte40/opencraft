@@ -555,7 +555,7 @@ function make(rawName, amount, makeStack, used)
   for loc, makeRawName in ipairs(recipe) do
     local row = math.floor((loc - 1) / recipe.size.cols)
     local col = (loc - 1) % recipe.size.cols
-    local slot = row * 4 + col + 1
+    local slot = row * 4 + col + 2
     if makeRawName ~= "" then
       if mat[makeRawName] then
         table.insert(mat[makeRawName], slot)
@@ -649,7 +649,7 @@ function request(rawName, amount, slots)
               end
             end
             moved = invs[item.side].extractItem({id=item.id, dmg=item.dmg, qty=math.min(pushed, item.qty)}, sideToDir[item.side])
-            turtle.transferTo(slot, math.min(pushed, item.qty))
+            turtle.transferTo(slot, moved)
           end
           item.qty = item.qty - moved
           inv[rawName].total = inv[rawName].total - moved
