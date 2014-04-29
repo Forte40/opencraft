@@ -649,7 +649,7 @@ function request(rawName, amount, slots)
               end
             end
             moved = invs[item.side].extractItem({id=item.id, dmg=item.dmg, qty=math.min(pushed, item.qty)}, sideToDir[item.side])
-            turtle.transferTo(slot, moved)
+            turtle.transferTo(slot, math.min(pushed, item.qty))
           end
           item.qty = item.qty - moved
           inv[rawName].total = inv[rawName].total - moved
