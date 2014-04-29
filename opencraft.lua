@@ -116,6 +116,7 @@ function findInventories()
       chest.pullItem = function (direction, from_turtle_slot, count, to_chest_slot)
         chest.insertItem(from_turtle_slot, count, direction)
       end
+      chest.getAllStacks = chest.getAvailableItems
     end
   end
   if self == nil then
