@@ -146,68 +146,73 @@ end
 function unloadTurtle()
   local items = getTurtleStacks()
   for slot, item in pairs(items) do
+    local sides = {}
     local side = getHighSide(item.rawName)
-    if side == nil then
-      for aSide, chest in pairs(invs) do
-        side = aSide
-        break
+    if side ~= nil then
+      table.insert(sides, side)
+    end
+    for side, chest in pairs(invs) do
+      if side ~= sides[1] then
+        table.insert(sides, side)
       end
     end
-    local chest = invs[side]
-    local chestItems = stacks[side]
-    local unload = item.qty
-    for chestSlot, chestItem in pairs(chestItems) do
-      if chestItem.rawName == item.rawName then
-        local moved = chest.pullItem(sideToDir[side], slot, unload, chestSlot)
-        unload = unload - moved
-        chestItem.qty = chestItem.qty + moved
-        local invItem = inv[item.rawName]
-        invItem.total = invItem.total + moved
-        for i, invItemStack in ipairs(invItem) do
-          if invItemStack.slot == chestSlot then
-            invItemStack.qty = invItemStack.qty + moved
+    for _, side in ipairs(sides) do
+      local chest = invs[side]
+      local chestItems = stacks[side]
+      local unload = item.qty
+      for chestSlot, chestItem in pairs(chestItems) do
+        if chestItem.rawName == item.rawName then
+          local moved = chest.pullItem(sideToDir[side], slot, unload, chestSlot)
+          unload = unload - moved
+          chestItem.qty = chestItem.qty + moved
+          local invItem = inv[item.rawName]
+          invItem.total = invItem.total + moved
+          for i, invItemStack in ipairs(invItem) do
+            if invItemStack.slot == chestSlot then
+              invItemStack.qty = invItemStack.qty + moved
+            end
+          end
+          if unload <= 0 then
+            break
           end
         end
-        if unload <= 0 then
-          break
-        end
       end
-    end
-    if unload > 0 then
-      for freeSlot = 1, chest.getInventorySize() do
-        if chestItems[freeSlot] == nil then
-          chest.pullItem(sideToDir[side], slot, unload, freeSlot)
-          local invItem = inv[item.rawName]
-          if invItem == nil then
-            invItem = {
-              ["total"] = item.qty,
+      if unload > 0 then
+        for freeSlot = 1, chest.getInventorySize() do
+          if chestItems[freeSlot] == nil then
+            chest.pullItem(sideToDir[side], slot, unload, freeSlot)
+            local invItem = inv[item.rawName]
+            if invItem == nil then
+              invItem = {
+                ["total"] = item.qty,
+                ["name"] = fixName(item.name),
+                ["rawName"] = item.rawName,
+                ["id"] = item.id,
+                ["maxSize"] = item.maxSize,
+              }
+              inv[item.rawName] = invItem
+            end
+            invItem.total = invItem.total + item.qty
+            table.insert(invItem, {
+              ["qty"] = item.qty,
               ["name"] = fixName(item.name),
               ["rawName"] = item.rawName,
               ["id"] = item.id,
               ["maxSize"] = item.maxSize,
+              ["dmg"] = item.dmg,
+              ["side"] = side,
+              ["slot"] = freeSlot
+            })
+            chestItems[freeSlot] = {
+              ["qty"] = item.qty,
+              ["name"] = fixName(item.name),
+              ["rawName"] = item.rawName,
+              ["id"] = item.id,
+              ["maxSize"] = item.maxSize,
+              ["dmg"] = item.dmg,
             }
-            inv[item.rawName] = invItem
+            break
           end
-          invItem.total = invItem.total + item.qty
-          table.insert(invItem, {
-            ["qty"] = item.qty,
-            ["name"] = fixName(item.name),
-            ["rawName"] = item.rawName,
-            ["id"] = item.id,
-            ["maxSize"] = item.maxSize,
-            ["dmg"] = item.dmg,
-            ["side"] = side,
-            ["slot"] = freeSlot
-          })
-          chestItems[freeSlot] = {
-            ["qty"] = item.qty,
-            ["name"] = fixName(item.name),
-            ["rawName"] = item.rawName,
-            ["id"] = item.id,
-            ["maxSize"] = item.maxSize,
-            ["dmg"] = item.dmg,
-          }
-          break
         end
       end
     end
