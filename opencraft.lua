@@ -185,41 +185,46 @@ function unloadTurtle()
         end
       end
       if unload > 0 then
-        for freeSlot = 1, chest.getInventorySize() do
-          if chestItems[freeSlot] == nil then
-            chest.pullItem(sideToDir[side], slot, unload, freeSlot)
-            local invItem = inv[item.rawName]
-            if invItem == nil then
-              invItem = {
-                ["total"] = item.qty,
+        if chest.getInventorySize then
+          for freeSlot = 1, chest.getInventorySize() do
+            if chestItems[freeSlot] == nil then
+              chest.pullItem(sideToDir[side], slot, unload, freeSlot)
+              local invItem = inv[item.rawName]
+              if invItem == nil then
+                invItem = {
+                  ["total"] = item.qty,
+                  ["name"] = fixName(item.name),
+                  ["rawName"] = item.rawName,
+                  ["id"] = item.id,
+                  ["maxSize"] = item.maxSize,
+                }
+                inv[item.rawName] = invItem
+              end
+              invItem.total = invItem.total + item.qty
+              table.insert(invItem, {
+                ["qty"] = item.qty,
                 ["name"] = fixName(item.name),
                 ["rawName"] = item.rawName,
                 ["id"] = item.id,
                 ["maxSize"] = item.maxSize,
+                ["dmg"] = item.dmg,
+                ["side"] = side,
+                ["slot"] = freeSlot
+              })
+              chestItems[freeSlot] = {
+                ["qty"] = item.qty,
+                ["name"] = fixName(item.name),
+                ["rawName"] = item.rawName,
+                ["id"] = item.id,
+                ["maxSize"] = item.maxSize,
+                ["dmg"] = item.dmg,
               }
-              inv[item.rawName] = invItem
+              break
             end
-            invItem.total = invItem.total + item.qty
-            table.insert(invItem, {
-              ["qty"] = item.qty,
-              ["name"] = fixName(item.name),
-              ["rawName"] = item.rawName,
-              ["id"] = item.id,
-              ["maxSize"] = item.maxSize,
-              ["dmg"] = item.dmg,
-              ["side"] = side,
-              ["slot"] = freeSlot
-            })
-            chestItems[freeSlot] = {
-              ["qty"] = item.qty,
-              ["name"] = fixName(item.name),
-              ["rawName"] = item.rawName,
-              ["id"] = item.id,
-              ["maxSize"] = item.maxSize,
-              ["dmg"] = item.dmg,
-            }
-            break
           end
+        else
+          -- AE support
+          chest.pullItem(sideToDir[side], slot, unload, 0)
         end
       end
     end
