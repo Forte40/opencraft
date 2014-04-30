@@ -231,6 +231,10 @@ function unloadTurtle()
   end
 end
 
+function sameItem(item1, item2)
+  item1.rawName == item2.rawName
+end
+
 function takeInventory()
   inv = {}
   stacks = {}
@@ -240,6 +244,7 @@ function takeInventory()
       ["rawName"] = recipe.rawName,
       ["name"] = fixName(recipe.name),
       ["id"] = recipe.id,
+      ["dmg"] = recipe.dmg,
       ["maxSize"] = recipe.maxSize,
       ["total"] = 0,
     }
@@ -295,6 +300,7 @@ end
 
 function search(name)
   name = name:lower()
+  name = name:gsub('[%-%.%+%[%]%(%)%$%^%%%?%*]','%%%1'):gsub('%z','%%z')
   local results = {}
   for rawName, invItem in pairs(inv) do
     if name == "" or string.match(invItem.name:lower(), name) then
