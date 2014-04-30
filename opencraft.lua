@@ -231,10 +231,6 @@ function unloadTurtle()
   end
 end
 
-function sameItem(item1, item2)
-  item1.rawName == item2.rawName
-end
-
 function takeInventory()
   inv = {}
   stacks = {}
