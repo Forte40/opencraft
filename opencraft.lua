@@ -229,6 +229,7 @@ function unloadTurtle()
       end
     end
   end
+  takeInventory()
 end
 
 function takeInventory()
