@@ -597,7 +597,6 @@ function make(rawName, amount, makeStack, used)
     for makeRawName, slots in pairs(mat) do
       request(makeRawName, currAmount, slots)
     end
-    turtle.select(16)
     turtle.craft()
     local count = turtle.getItemCount(1)
     unloadTurtle()
@@ -645,12 +644,6 @@ function request(rawName, amount, slots)
           if invs[item.side].pushItem then
             moved = invs[item.side].pushItem(sideToDir[item.side], item.slot, math.min(pushed, item.qty), slot)
           elseif invs[item.side].extractItem then
-            for j = 1, 16 do
-              if turtle.getItemCount(j) == 0 then
-                turtle.select(j)
-                break
-              end
-            end
             moved = invs[item.side].extractItem({id=item.id, dmg=item.dmg, qty=math.min(pushed, item.qty)}, sideToDir[item.side])
             turtle.transferTo(slot, moved)
           end
@@ -721,9 +714,8 @@ function teachRecipe()
       end
     end
   end
-  turtle.select(16)
   turtle.craft()
-  local item = getTurtleStacks(16)
+  local item = getTurtleStacks(1)
   if item then
     recipe.yield = item.qty
     recipe.size = {["rows"] = rows, ["cols"] = cols}
@@ -742,6 +734,7 @@ function teachRecipe()
 end
 
 function main()
+  turtle.select(1)
   showStatus()
   local text = ""
   panelItems.redirect()
