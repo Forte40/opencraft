@@ -282,9 +282,23 @@ function takeInventory()
           invItem.rawName == item.rawName and 
           invItem.dmg ~= item.dmg and 
           invItem.name ~= item.name then
+        -- fix current inv
         invItem.rawName = invItem.rawName .. "@" .. invItem.dmg
         inv[invItem.rawName] = invItem
+        -- set normal rawName with useDmg flag
         inv[item.rawName] = {useDmg = true}
+        -- fix recipes
+        if recipes[item.rawName] then
+          local recipe = recipes[item.rawName]
+          recipe.rawName = recipe.rawName .. "@" .. recipe.dmg
+          recipes[recipe.rawName] = recipe
+          recipes[item.rawName] = nil
+          saveFile("recipes.dat", recipes)
+        end
+        -- add rawName to useDmg file
+        useDmg[item.rawName] = true
+        saveFile("usedmg.dat", useDmg)
+        -- fix new item to be put in inventory
         item.rawName = item.rawName .. "@" .. item.dmg
         invItem = nil        
       end
@@ -755,6 +769,7 @@ function teachRecipe()
     recipe.rawName = item.rawName
     recipe.name = item.name
     recipe.id = item.id
+    recipe.dmg = item.dmg
     recipe.maxSize = item.maxSize
     recipes[recipe.rawName] = recipe
     saveFile("recipes.dat", recipes)
