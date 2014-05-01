@@ -139,6 +139,7 @@ function fixItemStacks(stacks)
       end
     end
   end
+  return stacks
 end
 
 function getTurtleStacks(getSlot)
