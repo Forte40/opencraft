@@ -126,12 +126,27 @@ function findInventories()
   end
 end
 
+function fixItemStacks(stacks)
+  -- fix raw name for items know to need dmg value
+  if stacks.rawName then
+    if inv[stacks.rawName] and inv[stacks.rawName].useDmg then
+      stacks.rawName = stacks.rawName .. "@" .. stacks.dmg
+    end
+  else
+    for slot, item in ipairs(stacks) do
+      if inv[item.rawName] and inv[item.rawName].useDmg then
+        item.rawName = item.rawName .. "@" .. item.dmg
+      end
+    end
+  end
+end
+
 function getTurtleStacks(getSlot)
   if narcissistic then
     if getSlot == nil then
-      return self.getAllStacks()
+      return fixItemStacks(self.getAllStacks())
     else
-      return self.getStackInSlot(getSlot)
+      return fixItemStacks(self.getStackInSlot(getSlot))
     end
   else
     if getSlot == nil then
@@ -142,12 +157,12 @@ function getTurtleStacks(getSlot)
       for slot = 1, 16 do
         self.pushItem(sideToDir["self"], slot, 64, slot)
       end
-      return items
+      return fixItemStacks(items)
     else
       self.pullItem(sideToDir["self"], getSlot, 64, getSlot)
       local item = self.getStackInSlot(getSlot)
       self.pushItem(sideToDir["self"], getSlot, 64, getSlot)
-      return item
+      return fixItemStacks(item)
     end
   end  
 end
@@ -258,14 +273,9 @@ function takeInventory()
   end
   -- load items from chests
   for side, chest in pairs(invs) do
-    stacks[side] = chest.getAllStacks()
+    stacks[side] = fixItemStacks(chest.getAllStacks())
     for slot, item in pairs(stacks[side]) do
       local invItem = inv[item.rawName]
-      -- fix raw name for items know to need dmg value
-      if inv[item.rawName].useDmg then
-        item.rawName = item.rawName .. "@" .. item.dmg
-        invItem = inv[item.rawName]
-      end
       -- detect items that need to use dmg value
       if invItem ~= nil and
           invItem.rawName == item.rawName and 
@@ -284,8 +294,8 @@ function takeInventory()
           ["name"] = fixName(item.name),
           ["rawName"] = item.rawName,
           ["id"] = item.id,
-          ["maxSize"] = item.maxSize,
           ["dmg"] = item.dmg,
+          ["maxSize"] = item.maxSize,
           ["side"] = side,
           ["slot"] = slot
         })
@@ -295,6 +305,7 @@ function takeInventory()
           ["name"] = fixName(item.name),
           ["rawName"] = item.rawName,
           ["id"] = item.id,
+          ["dmg"] = item.dmg,
           ["maxSize"] = item.maxSize,
           [1] = {
             ["qty"] = item.qty,
