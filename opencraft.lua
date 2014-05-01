@@ -58,6 +58,8 @@ local nameFix = loadFile("namefix.dat") or {
   ["sub"] = {},
   ["replace"] = {}
 }
+local useDmg = loadFile("usedmg.dat") or {}
+
 local sideToDir = loadFile("directions.dat")
 if sideToDir == nil then
   sideToDir = {
@@ -235,6 +237,10 @@ end
 function takeInventory()
   inv = {}
   stacks = {}
+  -- load rawNames that need dmg value to be unique
+  for rawName, _ in pairs(useDmg) do
+    inv[rawName] = {useDmg = true}
+  end
   -- load recipes
   for rawName, recipe in pairs(recipes) do
     local item = {
@@ -255,6 +261,22 @@ function takeInventory()
     stacks[side] = chest.getAllStacks()
     for slot, item in pairs(stacks[side]) do
       local invItem = inv[item.rawName]
+      -- fix raw name for items know to need dmg value
+      if inv[item.rawName].useDmg then
+        item.rawName = item.rawName .. "@" .. item.dmg
+        invItem = inv[item.rawName]
+      end
+      -- detect items that need to use dmg value
+      if invItem ~= nil and
+          invItem.rawName == item.rawName and 
+          invItem.dmg ~= item.dmg and 
+          invItem.name ~= item.name then
+        invItem.rawName = invItem.rawName .. "@" .. invItem.dmg
+        inv[invItem.rawName] = invItem
+        inv[item.rawName] = {useDmg = true}
+        item.rawName = item.rawName .. "@" .. item.dmg
+        invItem = nil        
+      end
       if invItem ~= nil then
         invItem.total = invItem.total + item.qty
         table.insert(invItem, {
@@ -292,7 +314,6 @@ function takeInventory()
       end
     end
   end
-  --saveFile("inventory.dat", inv)
 end
 
 function search(name)
