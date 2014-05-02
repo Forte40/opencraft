@@ -133,7 +133,7 @@ function fixItemStacks(stacks)
       stacks.rawName = stacks.rawName .. "@" .. stacks.dmg
     end
   else
-    for slot, item in ipairs(stacks) do
+    for slot, item in pairs(stacks) do
       if inv[item.rawName] and inv[item.rawName].useDmg then
         item.rawName = item.rawName .. "@" .. item.dmg
       end
@@ -300,7 +300,8 @@ function takeInventory()
         saveFile("usedmg.dat", useDmg)
         -- fix new item to be put in inventory
         item.rawName = item.rawName .. "@" .. item.dmg
-        invItem = nil        
+        invItem = nil
+      elseif
       end
       if invItem ~= nil then
         invItem.total = invItem.total + item.qty
