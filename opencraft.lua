@@ -250,6 +250,37 @@ function unloadTurtle()
   takeInventory()
 end
 
+function detectDmg(item)
+  if item.rawName:find("@@") == nil then
+    local invItem = inv[item.rawName]
+    -- detect items that need to use dmg value
+    if invItem ~= nil and
+        invItem.rawName == item.rawName and 
+        invItem.dmg ~= item.dmg and 
+        invItem.name ~= item.name then
+      -- fix current inv
+      invItem.rawName = invItem.rawName .. "@" .. invItem.dmg
+      inv[invItem.rawName] = invItem
+      -- set normal rawName with useDmg flag
+      inv[item.rawName] = {useDmg = true}
+      -- fix recipes
+      if recipes[item.rawName] then
+        local recipe = recipes[item.rawName]
+        recipe.rawName = recipe.rawName .. "@" .. recipe.dmg
+        recipes[recipe.rawName] = recipe
+        recipes[item.rawName] = nil
+        saveFile("recipes.dat", recipes)
+      end
+      -- add rawName to useDmg file
+      useDmg[item.rawName] = true
+      saveFile("usedmg.dat", useDmg)
+      -- fix new item to be put in inventory
+      item.rawName = item.rawName .. "@" .. item.dmg
+    end
+  end
+  return item
+end
+
 function takeInventory()
   inv = {}
   stacks = {}
@@ -276,32 +307,8 @@ function takeInventory()
   for side, chest in pairs(invs) do
     stacks[side] = fixItemStacks(chest.getAllStacks())
     for slot, item in pairs(stacks[side]) do
+      item = detectDmg(item)
       local invItem = inv[item.rawName]
-      -- detect items that need to use dmg value
-      if invItem ~= nil and
-          invItem.rawName == item.rawName and 
-          invItem.dmg ~= item.dmg and 
-          invItem.name ~= item.name then
-        -- fix current inv
-        invItem.rawName = invItem.rawName .. "@" .. invItem.dmg
-        inv[invItem.rawName] = invItem
-        -- set normal rawName with useDmg flag
-        inv[item.rawName] = {useDmg = true}
-        -- fix recipes
-        if recipes[item.rawName] then
-          local recipe = recipes[item.rawName]
-          recipe.rawName = recipe.rawName .. "@" .. recipe.dmg
-          recipes[recipe.rawName] = recipe
-          recipes[item.rawName] = nil
-          saveFile("recipes.dat", recipes)
-        end
-        -- add rawName to useDmg file
-        useDmg[item.rawName] = true
-        saveFile("usedmg.dat", useDmg)
-        -- fix new item to be put in inventory
-        item.rawName = item.rawName .. "@" .. item.dmg
-        invItem = nil
-      end
       if invItem ~= nil then
         invItem.total = invItem.total + item.qty
         table.insert(invItem, {
@@ -764,32 +771,7 @@ function teachRecipe()
   turtle.craft()
   local item = getTurtleStacks(1)
   if item then
-    -- detect items that need to use dmg value
-    local invItem = inv[item.rawName]
-    if invItem ~= nil and
-        invItem.rawName == item.rawName and 
-        invItem.dmg ~= item.dmg and 
-        invItem.name ~= item.name then
-      -- fix current inv
-      invItem.rawName = invItem.rawName .. "@" .. invItem.dmg
-      inv[invItem.rawName] = invItem
-      -- set normal rawName with useDmg flag
-      inv[item.rawName] = {useDmg = true}
-      -- fix recipes
-      if recipes[item.rawName] then
-        local recipe = recipes[item.rawName]
-        recipe.rawName = recipe.rawName .. "@" .. recipe.dmg
-        recipes[recipe.rawName] = recipe
-        recipes[item.rawName] = nil
-        saveFile("recipes.dat", recipes)
-      end
-      -- add rawName to useDmg file
-      useDmg[item.rawName] = true
-      saveFile("usedmg.dat", useDmg)
-      -- fix new item to be put in inventory
-      item.rawName = item.rawName .. "@" .. item.dmg
-      invItem = nil
-    end
+    item = detectDmg(item)
     recipe.yield = item.qty
     recipe.size = {["rows"] = rows, ["cols"] = cols}
     recipe.rawName = item.rawName
