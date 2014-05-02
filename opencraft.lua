@@ -256,7 +256,7 @@ function detectDmg(item)
     -- detect items that need to use dmg value
     if invItem ~= nil and
         invItem.rawName == item.rawName and 
-        invItem.dmg ~= item.dmg and 
+        (invItem.dmg ~= item.dmg or  item.id ~= item.id) and 
         invItem.name ~= item.name then
       -- fix current inv
       invItem.rawName = invItem.rawName .. "@" .. invItem.dmg
