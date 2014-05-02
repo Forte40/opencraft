@@ -301,7 +301,6 @@ function takeInventory()
         -- fix new item to be put in inventory
         item.rawName = item.rawName .. "@" .. item.dmg
         invItem = nil
-      elseif
       end
       if invItem ~= nil then
         invItem.total = invItem.total + item.qty
