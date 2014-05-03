@@ -354,7 +354,7 @@ function search(name)
   name = name:gsub('[%-%.%+%[%]%(%)%$%^%%%?%*]','%%%1'):gsub('%z','%%z')
   local results = {}
   for rawName, invItem in pairs(inv) do
-    if name == "" or string.match(invItem.name:lower(), name) then
+    if invItem.name and (name == "" or string.match(invItem.name:lower(), name)) then
       table.insert(results, invItem)
     end
   end
