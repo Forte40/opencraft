@@ -739,7 +739,7 @@ function teachRecipe()
   local recipe = {}
   for row = startRow, endRow do
     for col = startCol, endCol do
-      local index = row * 4 + col + 1
+      local index = (row - 1) * 4 + col
       if items[index] then
         if items[index].qty > 1 then
           print("invalid recipe, too many items")
