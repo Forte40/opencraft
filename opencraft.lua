@@ -717,38 +717,22 @@ end
 function teachRecipe()
   panelItems.redirect()
   term.clear()
+  if not turtle.craft(0) then
+    print("invalid recipe")
+    return nil
+  end
   local items = getTurtleStacks()
-  local startRow = nil
-  local endRow = nil
-  local startCol = nil
-  local endCol = nil
-  for row = 0, 3 do
-    local hasRow = false
-    local hasCol = false
-    for col = 0, 3 do
-      if items[row * 4 + col + 1] then
-        hasRow = true
-      end
-      if items[col * 4 + row + 1] then
-        hasCol = true
-      end
-    end
-    if hasRow and startRow == nil then
-      startRow = row
-    elseif not hasRow and startRow ~= nil and endRow == nil then
-      endRow = row - 1
-    end
-    if hasCol and startCol == nil then
-      startCol = row
-    elseif not hasCol and startCol ~= nil and endCol == nil then
-      endCol = row - 1
-    end
-  end
-  if endRow == nil then
-    endRow = 3
-  end
-  if endCol == nil then
-    endCol = 3
+  slotRows = {1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4}
+  slotCols = {1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4}
+  local startRow = 4
+  local endRow = 1
+  local startCol = 4
+  local endCol = 1
+  for slot, item in pairs(items) do
+    startRow = math.min(slotRows[slot], startRow)
+    endRow = math.max(slotRows[slot], endRow)
+    startCol = math.min(slotCols[slot], startCol)
+    endCol = math.max(slotCols[slot], endCol)
   end
   local rows = endRow - startRow + 1
   local cols = endCol - startCol + 1
@@ -758,7 +742,7 @@ function teachRecipe()
       local index = row * 4 + col + 1
       if items[index] then
         if items[index].qty > 1 then
-          print("invalid recipe")
+          print("invalid recipe, too many items")
           return nil
         else
           table.insert(recipe, items[index].rawName)
